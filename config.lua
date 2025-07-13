@@ -1,6 +1,6 @@
 Config = {}
 
--- Target systém: 'qtarget', 'ox_target', 'qb-target'
+-- 'qtarget', 'ox_target', 'qb-target'
 Config.TargetSystem = 'ox_target'
 
 -- NPC model
