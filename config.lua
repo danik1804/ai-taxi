@@ -1,8 +1,16 @@
 Config = {}
 
--- 'qtarget', 'ox_target', 'qb-target'
+-- Target systém: 'qtarget', 'ox_target', 'qb-target'
 Config.TargetSystem = 'ox_target'
 
+-- NPC model
+Config.NpcModel = `a_m_y_business_01`
+Config.NpcCoords = vector3(-1038.6, -2730.8, 19.1)
+
+-- Spawn taxi
+Config.TaxiSpawnCoords = vector3(-1034.3, -2730.1, 20.0)
+
+-- Position
 Config.Locations = {
     { name = "Hlavní Garáže", coords = vector3(221.2, -789.4, 29.6), heading = 337.1 },
     { name = "LSPD Stanice", coords = vector3(407.5, -988.4, 28.1), heading = 230.4 },
