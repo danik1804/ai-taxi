@@ -1,11 +1,3 @@
-local locations = {
-    { name = "Hlavní Garáže", coords = vector3(221.2, -789.4, 29.6), heading = 337.1 },
-    { name = "LSPD Stanice", coords = vector3(407.5, -988.4, 28.1), heading = 230.4 },
-    { name = "Autoškola", coords = vector3(243.5, -1416.2, 29.4), heading = 144.7 },
-    { name = "Banka", coords = vector3(152.6, -1027.3, 28.2), heading = 249.6 },
-    { name = "Radnice", coords = vector3(-515.8, -263.9, 34.3), heading = 296.2 },
-}
-
 local function teleportPlayer(coords, heading)
     local playerPed = PlayerPedId()
     SetEntityCoords(playerPed, coords.x, coords.y, coords.z, false, false, false, true)
@@ -19,7 +11,6 @@ local function setNpcLookAtPlayer(npc)
             local playerPed = PlayerPedId()
             local playerCoords = GetEntityCoords(playerPed)
             local npcCoords = GetEntityCoords(npc)
-
             local heading = GetHeadingFromVector_2d(playerCoords.x - npcCoords.x, playerCoords.y - npcCoords.y)
             SetEntityHeading(npc, heading)
         end
@@ -31,9 +22,7 @@ Citizen.CreateThread(function()
     local npcModel = `a_m_y_business_01`
 
     RequestModel(npcModel)
-    while not HasModelLoaded(npcModel) do
-        Wait(100)
-    end
+    while not HasModelLoaded(npcModel) do Wait(100) end
 
     local npc = CreatePed(4, npcModel, npcCoords.x, npcCoords.y, npcCoords.z, 0.0, false, true)
     SetEntityInvincible(npc, true)
@@ -42,22 +31,36 @@ Citizen.CreateThread(function()
 
     setNpcLookAtPlayer(npc)
 
-    exports['qtarget']:AddTargetEntity(npc, {
-        options = {
+    local options = {
+        {
+            event = 'aitaxi:startConversation',
+            icon = 'fas fa-taxi',
+            label = 'Promluvit si',
+        }
+    }
+
+    if Config.TargetSystem == 'qtarget' then
+        exports['qtarget']:AddTargetEntity(npc, {
+            options = options,
+            distance = 2.5,
+        })
+    elseif Config.TargetSystem == 'ox_target' then
+        exports.ox_target:addLocalEntity(npc, {
             {
-                event = 'aitaxi:startConversation',
-                icon = 'fas fa-taxi',
                 label = 'Promluvit si',
-            },
-        },
-        distance = 2.5,
-    })
+                icon = 'fas fa-taxi',
+                onSelect = function()
+                    TriggerEvent('aitaxi:startConversation')
+                end
+            }
+        })
+    end
 end)
 
 RegisterNetEvent('aitaxi:startConversation')
 AddEventHandler('aitaxi:startConversation', function()
     local options = {}
-    for i, location in ipairs(locations) do
+    for _, location in ipairs(Config.Locations) do
         table.insert(options, {
             title = location.name,
             event = 'aitaxi:selectDestination',
@@ -75,45 +78,36 @@ end)
 
 RegisterNetEvent('aitaxi:selectDestination')
 AddEventHandler('aitaxi:selectDestination', function(location)
-    local coords = location.coords
-    local heading = location.heading
-
+    local coords, heading = location.coords, location.heading
     local taxiModel = `taxi`
+
     RequestModel(taxiModel)
-    while not HasModelLoaded(taxiModel) do
-        Citizen.Wait(100)
-    end
+    while not HasModelLoaded(taxiModel) do Citizen.Wait(100) end
 
     local taxiSpawnCoords = vector3(-1034.3, -2730.1, 20.0)
     local taxi = CreateVehicle(taxiModel, taxiSpawnCoords.x, taxiSpawnCoords.y, taxiSpawnCoords.z, 240.9, true, false)
 
-    SetEntityHeading(taxi, 240.9)
     SetVehicleDoorsLockedForAllPlayers(taxi, false)
+    SetEntityHeading(taxi, 240.9)
 
     local playerPed = PlayerPedId()
-
     local npcModel = `a_m_y_business_01`
+
     RequestModel(npcModel)
-    while not HasModelLoaded(npcModel) do
-        Citizen.Wait(100)
-    end
+    while not HasModelLoaded(npcModel) do Citizen.Wait(100) end
 
     local npc = CreatePed(4, npcModel, taxiSpawnCoords.x, taxiSpawnCoords.y, taxiSpawnCoords.z, 240.9, true, false)
-
     TaskWarpPedIntoVehicle(npc, taxi, -1)
-
-    SetEntityAsMissionEntity(taxi, true, true) 
+    SetEntityAsMissionEntity(taxi, true, true)
     SetPedAsNoLongerNeeded(npc)
-    SetEntityInvincible(npc, true) 
-    SetBlockingOfNonTemporaryEvents(npc, true) 
+    SetEntityInvincible(npc, true)
+    SetBlockingOfNonTemporaryEvents(npc, true)
 
     FreezeEntityPosition(taxi, true)
 
     TaskEnterVehicle(playerPed, taxi, 10000, 2, 1.0, 1, 0)
 
-    while not IsPedInVehicle(playerPed, taxi, false) do
-        Citizen.Wait(100)
-    end
+    while not IsPedInVehicle(playerPed, taxi, false) do Citizen.Wait(100) end
 
     FreezeEntityPosition(taxi, false)
 
@@ -126,57 +120,30 @@ AddEventHandler('aitaxi:selectDestination', function(location)
 
     Citizen.Wait(100)
 
-    local stopDistance = 2.0 
-    local targetCoords = vector3(coords.x, coords.y, coords.z) 
-    local direction = GetEntityForwardVector(taxi) 
-    local offsetCoords = targetCoords - (direction * stopDistance) 
+    local stopDistance = 2.0
+    local targetCoords = vector3(coords.x, coords.y, coords.z)
+    local direction = GetEntityForwardVector(taxi)
+    local offsetCoords = targetCoords - (direction * stopDistance)
 
-    SetEntityCoords(taxi, offsetCoords.x, offsetCoords.y, offsetCoords.z, false, false, false, true) 
+    SetEntityCoords(taxi, offsetCoords.x, offsetCoords.y, offsetCoords.z, false, false, false, true)
     SetEntityHeading(taxi, heading)
 
     FreezeEntityPosition(taxi, true)
 
     TaskLeaveVehicle(playerPed, taxi, 0)
     Citizen.Wait(1000)
-
-    while IsPedInVehicle(playerPed, taxi, false) do
-        Citizen.Wait(100)
-    end
+    while IsPedInVehicle(playerPed, taxi, false) do Citizen.Wait(100) end
 
     FreezeEntityPosition(taxi, false)
 
     Citizen.Wait(10000)
-
     DeleteVehicle(taxi)
     DeletePed(npc)
 end)
 
-RegisterNetEvent('db_core:TaxiToGarage')
-AddEventHandler('db_core:TaxiToGarage', function()
-    print('Teleporting to garage')
-    teleportPlayer(locations[1].coords, locations[1].heading)
-end)
-
-RegisterNetEvent('db_core:TaxiToPD')
-AddEventHandler('db_core:TaxiToPD', function()
-    print('Teleporting to PD')
-    teleportPlayer(locations[2].coords, locations[2].heading)
-end)
-
-RegisterNetEvent('db_core:TaxiToDL')
-AddEventHandler('db_core:TaxiToDL', function()
-    print('Teleporting to DL')
-    teleportPlayer(locations[3].coords, locations[3].heading)
-end)
-
-RegisterNetEvent('db_core:TaxiToBank')
-AddEventHandler('db_core:TaxiToBank', function()
-    print('Teleporting to Bank')
-    teleportPlayer(locations[4].coords, locations[4].heading)
-end)
-
-RegisterNetEvent('db_core:TaxiToTH')
-AddEventHandler('db_core:TaxiToTH', function()
-    print('Teleporting to Town Hall')
-    teleportPlayer(locations[5].coords, locations[5].heading)
-end)
+-- Jednoduché teleport eventy
+RegisterNetEvent('db_core:TaxiToGarage', function() teleportPlayer(Config.Locations[1].coords, Config.Locations[1].heading) end)
+RegisterNetEvent('db_core:TaxiToPD', function() teleportPlayer(Config.Locations[2].coords, Config.Locations[2].heading) end)
+RegisterNetEvent('db_core:TaxiToDL', function() teleportPlayer(Config.Locations[3].coords, Config.Locations[3].heading) end)
+RegisterNetEvent('db_core:TaxiToBank', function() teleportPlayer(Config.Locations[4].coords, Config.Locations[4].heading) end)
+RegisterNetEvent('db_core:TaxiToTH', function() teleportPlayer(Config.Locations[5].coords, Config.Locations[5].heading) end)
