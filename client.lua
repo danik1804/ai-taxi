@@ -62,8 +62,8 @@ local function addTargetToNpc(npc)
 end
 
 Citizen.CreateThread(function()
-    local npcCoords = vector3(-1038.6, -2730.8, 19.1)
-    local npcModel = `a_m_y_business_01`
+    local npcCoords = Config.NpcCoords
+    local npcModel = Config.NpcModel or `a_m_y_business_01`
 
     RequestModel(npcModel)
     while not HasModelLoaded(npcModel) do
@@ -110,26 +110,26 @@ AddEventHandler('aitaxi:selectDestination', function(location)
         Citizen.Wait(100)
     end
 
-    local taxiSpawnCoords = vector3(-1034.3, -2730.1, 20.0)
-    local taxi = CreateVehicle(taxiModel, taxiSpawnCoords.x, taxiSpawnCoords.y, taxiSpawnCoords.z, 240.9, true, false)
+    local taxiSpawn = Config.TaxiSpawnCoords
+    local taxi = CreateVehicle(taxiModel, taxiSpawn.x, taxiSpawn.y, taxiSpawn.z, 240.9, true, false)
     SetEntityHeading(taxi, 240.9)
     SetVehicleDoorsLockedForAllPlayers(taxi, false)
 
     local playerPed = PlayerPedId()
 
-    local npcModel = `a_m_y_business_01`
+    local npcModel = Config.NpcModel or `a_m_y_business_01`
     RequestModel(npcModel)
     while not HasModelLoaded(npcModel) do
         Citizen.Wait(100)
     end
 
-    local npc = CreatePed(4, npcModel, taxiSpawnCoords.x, taxiSpawnCoords.y, taxiSpawnCoords.z, 240.9, true, false)
+    local npc = CreatePed(4, npcModel, taxiSpawn.x, taxiSpawn.y, taxiSpawn.z, 240.9, true, false)
     TaskWarpPedIntoVehicle(npc, taxi, -1)
 
-    SetEntityAsMissionEntity(taxi, true, true) 
+    SetEntityAsMissionEntity(taxi, true, true)
     SetPedAsNoLongerNeeded(npc)
-    SetEntityInvincible(npc, true) 
-    SetBlockingOfNonTemporaryEvents(npc, true) 
+    SetEntityInvincible(npc, true)
+    SetBlockingOfNonTemporaryEvents(npc, true)
     FreezeEntityPosition(taxi, true)
 
     TaskEnterVehicle(playerPed, taxi, 10000, 2, 1.0, 1, 0)
@@ -148,10 +148,9 @@ AddEventHandler('aitaxi:selectDestination', function(location)
 
     Citizen.Wait(100)
 
-    local stopDistance = 2.0 
-    local targetCoords = vector3(coords.x, coords.y, coords.z)
+    local stopDistance = 2.0
     local direction = GetEntityForwardVector(taxi)
-    local offsetCoords = targetCoords - (direction * stopDistance)
+    local offsetCoords = coords - (direction * stopDistance)
 
     SetEntityCoords(taxi, offsetCoords.x, offsetCoords.y, offsetCoords.z, false, false, false, true)
     SetEntityHeading(taxi, heading)
@@ -171,7 +170,7 @@ AddEventHandler('aitaxi:selectDestination', function(location)
     DeletePed(npc)
 end)
 
--- Teleport příkazy
+-- Rychlé teleporty
 RegisterNetEvent('db_core:TaxiToGarage')
 AddEventHandler('db_core:TaxiToGarage', function()
     teleportPlayer(Config.Locations[1].coords, Config.Locations[1].heading)
