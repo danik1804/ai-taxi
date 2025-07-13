@@ -141,7 +141,6 @@ AddEventHandler('aitaxi:selectDestination', function(location)
     DeletePed(npc)
 end)
 
--- Jednoduché teleport eventy
 RegisterNetEvent('db_core:TaxiToGarage', function() teleportPlayer(Config.Locations[1].coords, Config.Locations[1].heading) end)
 RegisterNetEvent('db_core:TaxiToPD', function() teleportPlayer(Config.Locations[2].coords, Config.Locations[2].heading) end)
 RegisterNetEvent('db_core:TaxiToDL', function() teleportPlayer(Config.Locations[3].coords, Config.Locations[3].heading) end)
