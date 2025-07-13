@@ -1,6 +1,6 @@
 Config = {}
 
--- Vyber target systém: 'qtarget', 'ox_target', 'qb-target'
+-- 'qtarget', 'ox_target', 'qb-target'
 Config.TargetSystem = 'ox_target'
 
 Config.Locations = {
