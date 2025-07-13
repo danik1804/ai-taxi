@@ -1,7 +1,7 @@
 Config = {}
 
--- Target system: 'qtarget', 'ox_target'
-Config.TargetSystem = 'qtarget'
+-- Vyber target systém: 'qtarget', 'ox_target', 'qb-target'
+Config.TargetSystem = 'ox_target'
 
 Config.Locations = {
     { name = "Hlavní Garáže", coords = vector3(221.2, -789.4, 29.6), heading = 337.1 },
